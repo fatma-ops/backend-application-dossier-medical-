@@ -1,21 +1,22 @@
-const nodemailer = require ("nodemailer");
-const {AUTH_EMAIL , AUTH_PASS} = process.env;
+const nodemailer = require("nodemailer");
+const { AUTH_EMAIL, AUTH_PASS } = process.env;
 let transporter = nodemailer.createTransport({
-host : "smtp-mail.outlook.com",
-auth: {
-user: AUTH_EMAIL,
-pass: AUTH_PASS,
-},
+    service: "gmail",
+    auth: {
+        user: AUTH_EMAIL,
+        pass: AUTH_PASS,
+    },
 
 
 
 });
 
+
 // test transporter
-transporter.verify((error , success) => {
-    if(error) {
+transporter.verify((error, success) => {
+    if (error) {
         console.log(error);
-    }else {
+    } else {
         console.log("Ready for message");
         console.log(success);
     }
@@ -23,10 +24,10 @@ transporter.verify((error , success) => {
 });
 const sendEmail = async (mailOptions) => {
     try {
-     await transporter.sendMail(mailOptions);
-     return ; 
-    }catch (error){
-      throw error;
+        await transporter.sendMail(mailOptions);
+        return;
+    } catch (error) {
+        throw error;
     }
 };
-module.exports = sendEmail ;
+module.exports = sendEmail;
