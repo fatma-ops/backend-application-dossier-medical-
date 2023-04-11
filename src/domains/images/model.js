@@ -3,12 +3,9 @@ const mongoose = require('mongoose');
 const imageSchema = mongoose.Schema({
   name: { type: String,
      required: true },
-  date: {type : String },
+  date: {type : String , required: true},
   image: { data: Buffer, contentType: String },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
+  
   created: {
     type: Date,
     required: true,

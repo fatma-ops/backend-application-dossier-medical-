@@ -5,8 +5,8 @@ const analyseSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  date:{type : String} ,
-  userEmail:{ type:String },
+  date:{type : String , required: true} ,
+  userEmail:{ type:String , required: true },
 
   image: { data: Buffer, contentType: String }
   ,created: {
