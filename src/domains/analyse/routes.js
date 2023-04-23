@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const Analyse = require('./model');
 
+const path = require('path');
 
 //storage 
 const Storage = multer.diskStorage({
@@ -19,6 +20,12 @@ const uploadPut = multer({
   storage: Storage
 }).single('testimage');
 
+// Serveur d'images
+router.get('/images/:imageName', (req, res) => {
+  const imageName = req.params.imageName;
+  const imagePath = path.join(__dirname, 'uploads', imageName);
+  res.sendFile(imagePath);
+});
 
 
 // add Analyse
@@ -37,7 +44,7 @@ router.post('/add' , (req , res) => {
           data:req.file.filename,
           contentType:'image/png'
         },
-        userEmail:userEmail,
+        userEmail:req.body.userEmail,
         
       })
 
@@ -64,6 +71,14 @@ router.get('/:userEmail', async (req, res) => {
     res.status(500).send('An error occurred');
   }
 });
+
+
+
+
+
+
+
+
 
 
 // delete an analysis by ID

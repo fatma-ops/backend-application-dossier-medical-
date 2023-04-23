@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const analyseSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+   
   },
-  date:{type : String , required: true} ,
-  userEmail:{ type:String , required: true },
+  date:{type : String } ,
+  userEmail:{ type:String },
 
   image: { data: Buffer, contentType: String }
   ,created: {

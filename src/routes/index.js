@@ -8,6 +8,7 @@ const ForgetPasswordRoutes = require("./../domains/forget_password");
 const AnalyseRoutes = require("./../domains/analyse");
 const ImageRoutes = require("./../domains/images");
 const VaccinRoutes = require("./../domains/vaccin");
+const MedecinRoutes = require("./../domains/medecin");
 
 
 
@@ -19,6 +20,7 @@ router.use("/forget_Password" , ForgetPasswordRoutes);
 router.use("/analyse",AnalyseRoutes);
 router.use("/image",ImageRoutes);
 router.use("/vaccin",VaccinRoutes);
+router.use("/medecin",MedecinRoutes);
 
 
 module.exports = router ; 
