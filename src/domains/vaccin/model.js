@@ -5,10 +5,13 @@ const vaccinSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  maladieCible:{type:String},
   date:{type : String } ,
   userEmail:{ type:String , required: true },
 
-  image: { data: Buffer, contentType: String }
+  image: { data: Buffer, contentType: String },
+ commentaire:{type:String }
+
   ,created: {
     type: Date,
     required: true,

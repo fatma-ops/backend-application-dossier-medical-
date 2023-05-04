@@ -32,12 +32,14 @@ router.post('/add' , (req , res) => {
 
       const newVaccin = new Vaccin ({
         title:req.body.title,
+        maladieCible:req.body.maladieCible,
         date:req.body.date,
         image:{
           data:req.file.filename,
           contentType:'image/png'
         },
         userEmail:req.body.userEmail,
+        commentaire : req.body.commentaire
         
       })
 
@@ -103,10 +105,14 @@ router.put('/put/:id', uploadPut, async (req, res) => {
 
     // Update the Vaccin data with the new file information
     vaccin.title = req.body.title;
+    vaccin.maladieCible = req.body.maladieCible;
+
     vaccin.date = req.body.date;
     vaccin.userEmail = req.body.userEmail;
 
     vaccin.image.data = req.file.filename;
+    vaccin.commentaire = req.body.commentaire;
+
 
     // Save the updated Vaccin to the database
     const updatedVaccin = await vaccin.save();
