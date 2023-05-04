@@ -40,6 +40,8 @@ router.post('/add' , (req , res) => {
       const newAnalyse = new Analyse ({
         title:req.body.title,
         date:req.body.date,
+        contact: req.body.contact,
+
         image:{
           data:req.file.filename,
           contentType:'image/png'
@@ -52,7 +54,7 @@ router.post('/add' , (req , res) => {
       res.status(201).json(newAnalyse);
     }catch (err) {
         console.error(err);
-        res.status(500).send('an error happend ');
+        res.status(500).send('Zrreur ');
       }
 
 
@@ -68,7 +70,7 @@ router.get('/:userEmail', async (req, res) => {
     res.json(analyses);
   } catch (err) {
     console.error(err);
-    res.status(500).send('An error occurred');
+    res.status(500).send('Erreur');
   }
 });
 
@@ -87,12 +89,12 @@ router.delete('/delete/:id', async (req, res) => {
     const id = req.params.id;
     const deletedAnalyse = await Analyse.findByIdAndDelete(id);
     if (!deletedAnalyse) {
-      return res.status(404).send('Analysis not found');
+      return res.status(404).send('Analyse introuvable');
     }
     res.json(deletedAnalyse);
   } catch (err) {
     console.error(err);
-    res.status(500).send('An error occurred');
+    res.status(500).send('Erreur');
   }
 });
 
@@ -113,12 +115,14 @@ router.put('/put/:id', uploadPut, async (req, res) => {
     const analyse = await Analyse.findById(id);
 
     if (!analyse) {
-      return res.status(404).send('Image not found');
+      return res.status(404).send('Analyse introuvable');
     }
 
     // Update the image data with the new file information
     analyse.title = req.body.title;
     analyse.date = req.body.date;
+    analyse.contact = req.body.contact;
+
     analyse.userEmail = req.body.userEmail;
 
     analyse.image.data = req.file.filename;
@@ -130,7 +134,7 @@ router.put('/put/:id', uploadPut, async (req, res) => {
     res.status(200).json(updatedAnalyse);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error updating image');
+    res.status(500).send('Erreur lors de la mise à jour de la analyse');
   }
 });
 // search analyses

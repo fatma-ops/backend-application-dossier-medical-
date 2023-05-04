@@ -27,7 +27,7 @@ router.post('/add' , (req , res) => {
       res.status(201).json(newMedecin);
     }catch (err) {
         console.error(err);
-        res.status(500).send('an error happend ');
+        res.status(500).send('Erreur ');
       }
 
 
@@ -43,7 +43,7 @@ router.get('/:userEmail', async (req, res) => {
     res.json(medecins);
   } catch (err) {
     console.error(err);
-    res.status(500).send('An error occurred');
+    res.status(500).send('Erreur');
   }
 });
 
@@ -67,7 +67,7 @@ router.delete('/delete/:id', async (req, res) => {
     res.json(deletedMedecin);
   } catch (err) {
     console.error(err);
-    res.status(500).send('An error occurred');
+    res.status(500).send('Erreur');
   }
 });
 
@@ -108,7 +108,7 @@ router.put('/put/:id', async (req, res) => {
     res.status(200).json(updatedMedecin);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Erreur');
+    res.status(500).send('Erreur lors de la mise à jour du contact');
   }
 });
 // search analyses
@@ -126,6 +126,7 @@ router.get('/search', async (req, res) => {
     res.status(500).send('Erreur'); // Return a 500 error if an error occurs while searching for the image
   }
 });
+
 
   module.exports = router;
   

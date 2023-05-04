@@ -6,6 +6,8 @@ const analyseSchema = new mongoose.Schema({
    
   },
   date:{type : String } ,
+  contact:{type : String } ,
+
   userEmail:{ type:String },
 
   image: { data: Buffer, contentType: String }

@@ -45,7 +45,7 @@ router.post('/add' , (req , res) => {
       res.status(201).json(newVaccin);
     }catch (err) {
         console.error(err);
-        res.status(500).send('an error happend ');
+        res.status(500).send('erreur ');
       }
 
 
@@ -61,7 +61,7 @@ router.get('/:userEmail', async (req, res) => {
     res.json(vaccines);
   } catch (err) {
     console.error(err);
-    res.status(500).send('An error occurred');
+    res.status(500).send('erreur');
   }
 });
 
@@ -72,12 +72,12 @@ router.delete('/delete/:id', async (req, res) => {
     const id = req.params.id;
     const deletedVaccin = await Vaccin.findByIdAndDelete(id);
     if (!deletedVaccin) {
-      return res.status(404).send('Vaccin not found');
+      return res.status(404).send('Vaccin introuvable');
     }
     res.json(deletedVaccin);
   } catch (err) {
     console.error(err);
-    res.status(500).send('An error occurred');
+    res.status(500).send('Erreur');
   }
 });
 
@@ -94,28 +94,28 @@ router.put('/put/:id', uploadPut, async (req, res) => {
   const id = req.params.id;
 
   try {
-    // Find the image to update by ID
+    // Find the Vaccin to update by ID
     const vaccin = await Vaccin.findById(id);
 
     if (!vaccin) {
-      return res.status(404).send('Image not found');
+      return res.status(404).send('Vaccin introuvable');
     }
 
-    // Update the image data with the new file information
+    // Update the Vaccin data with the new file information
     vaccin.title = req.body.title;
     vaccin.date = req.body.date;
     vaccin.userEmail = req.body.userEmail;
 
     vaccin.image.data = req.file.filename;
 
-    // Save the updated image to the database
+    // Save the updated Vaccin to the database
     const updatedVaccin = await vaccin.save();
 
-    // Send the updated image data back to the client
+    // Send the updated Vaccin data back to the client
     res.status(200).json(updatedVaccin);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error updating ');
+    res.status(500).send('Erreur lors de la mise à jour du vaccin');
   }
 });
 // search vaccines
@@ -126,7 +126,7 @@ router.get('/search', async (req, res) => {
     if (a) {
       res.status(200).json(a); // Return the image data if found
     } else {
-      res.status(404).send('Vaccin not found'); // Return a 404 error if the image is not found
+      res.status(404).send('Vaccin introuvable'); // Return a 404 error if the image is not found
     }
   } catch (err) {
     console.error(err);

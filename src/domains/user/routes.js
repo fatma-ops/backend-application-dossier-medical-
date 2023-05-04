@@ -37,7 +37,7 @@ router.post("/signup", async (req,res) => {
      groupeSanguin = groupeSanguin.trim();
      allergie = allergie.trim();
      password= password.trim();
-     if(!(prenom && nom && email && password && groupeSanguin && allergie )){
+     if(!(prenom && nom && email && password  )){
         throw Error("Champs de saisie vides. !");
      } else if(!/^[a-zA-Z]*$/.test(prenom)){
         throw Error ("Prénom invalide");

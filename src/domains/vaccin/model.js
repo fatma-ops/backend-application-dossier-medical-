@@ -5,7 +5,7 @@ const vaccinSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  date:{type : String , required: true} ,
+  date:{type : String } ,
   userEmail:{ type:String , required: true },
 
   image: { data: Buffer, contentType: String }
