@@ -43,12 +43,18 @@ router.post('/add' , (req , res) => {
           date:req.body.date,
           contact:req.body.contact,
 
-           ordonnace:{
+           ordonnance:{
             data:req.file.filename,
             contentType:'image/png'
           },
           idTraitement:req.body.idTraitement,
+          
+
           userEmail:req.body.userEmail,
+          commentaire:req.body.commentaire,
+          cout:req.body.cout,
+          remboursement:req.body.remboursement,
+
           
         })
   
@@ -110,7 +116,13 @@ router.put('/put/:id', uploadPut, async (req, res) => {
       consultation.userEmail = req.body.userEmail;
       consultation.idTraitement = req.body.idTraitement;
 
-      consultation.ordonnace.data = req.file.filename;
+      consultation.ordonnance.data = req.file.filename;
+      consultation.commentaire = req.body.commentaire;
+      consultation.cout.data = req.file.cout;
+      consultation.remboursement.data = req.file.remboursement;
+
+
+
   
       // Save the updated consultation to the database
       const updatedConsulation = await consultation.save();

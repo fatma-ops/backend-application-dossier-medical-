@@ -5,10 +5,13 @@ const consultationSchema = new mongoose.Schema({
     type: String},
   date:{type : String } ,
   contact:{type: String},
-  ordonnace: { data: Buffer, contentType: String },
+  ordonnance: { data: Buffer, contentType: String },
   idTraitement: { type: mongoose.Schema.Types.ObjectId, ref: 'Traitement' },
 
   userEmail:{ type:String },
+  commentaire:{type:String},
+  cout:{type:String},
+  remboursement:{type:String},
   created: {
     type: Date,
     required: true,

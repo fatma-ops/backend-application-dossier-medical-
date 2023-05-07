@@ -4,7 +4,12 @@ const multer = require('multer');
 const Analyse = require('./model');
 
 const path = require('path');
-
+// Serveur d'images
+router.get('/images/:imageName', (req, res) => {
+  const imageName = req.params.imageName;
+  const imagePath = path.join(__dirname, 'uploads', imageName);
+  res.sendFile(imagePath);
+});
 //storage 
 const Storage = multer.diskStorage({
   destination:'uploads',
@@ -20,12 +25,7 @@ const uploadPut = multer({
   storage: Storage
 }).single('testimage');
 
-// Serveur d'images
-router.get('/images/:imageName', (req, res) => {
-  const imageName = req.params.imageName;
-  const imagePath = path.join(__dirname, 'uploads', imageName);
-  res.sendFile(imagePath);
-});
+
 
 
 // add Analyse
@@ -46,6 +46,8 @@ router.post('/add' , (req , res) => {
           data:req.file.filename,
           contentType:'image/png'
         },
+        cout:req.body.cout,
+        remboursement: req.body.remboursement,
         userEmail:req.body.userEmail,
         
       })
@@ -54,7 +56,7 @@ router.post('/add' , (req , res) => {
       res.status(201).json(newAnalyse);
     }catch (err) {
         console.error(err);
-        res.status(500).send('Zrreur ');
+        res.status(500).send('Erreur ');
       }
 
 
@@ -67,12 +69,19 @@ router.get('/:userEmail', async (req, res) => {
   try {
     const userEmail = req.params.userEmail;
     const analyses = await Analyse.find({ userEmail });
-    res.json(analyses);
+    const analysedocs = analyses.map(doc => {
+      return {
+        ...doc.toObject(),
+        image: doc.imageUrl // <-- return the URL of the image
+      };
+    });
+    res.json(analysedocs);
   } catch (err) {
     console.error(err);
     res.status(500).send('Erreur');
   }
 });
+
 
 
 
@@ -126,6 +135,9 @@ router.put('/put/:id', uploadPut, async (req, res) => {
     analyse.userEmail = req.body.userEmail;
 
     analyse.image.data = req.file.filename;
+    analyse.cout.data = req.body.cout;
+    analyse.remboursement = req.body.remboursement;
+
 
     // Save the updated image to the database
     const updatedAnalyse = await analyse.save();
