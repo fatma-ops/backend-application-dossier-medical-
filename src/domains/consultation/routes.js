@@ -30,45 +30,37 @@ router.get('/images/:imageName', (req, res) => {
 
 
 // add Consultation
-router.post('/add' , (req , res) => {
-    upload(req , res , (err) => {
-      if(err){
-        console.log(err , 'Erreur')
-      }else {
-        try {
-          const { userEmail } = req.body;
-  
-        const newConsultation = new Consultation ({
+router.post('/add', (req, res) => {
+  upload(req, res, (err) => {
+    if (err) {
+      console.log(err, 'Erreur');
+    } else {
+      try {
+        const { userEmail } = req.body;
+        const newConsultation = new Consultation({
+          objet: req.body.objet,
           type:req.body.type,
-          date:req.body.date,
-          contact:req.body.contact,
-
-           ordonnance:{
-            data:req.file.filename,
-            contentType:'image/png'
+          date: req.body.date,
+          contact: req.body.contact,
+          ordonnance: {
+            data: req.file.filename,
+            contentType: 'image/png',
           },
-          idTraitement:req.body.idTraitement,
-          
+          userEmail: req.body.userEmail,
+        });
 
-          userEmail:req.body.userEmail,
-          commentaire:req.body.commentaire,
-          cout:req.body.cout,
-          remboursement:req.body.remboursement,
-
-          
-        })
-  
         newConsultation.save();
         res.status(201).json(newConsultation);
-      }catch (err) {
-          console.error(err);
-          res.status(500).send('Erreur , essaye ');
-        }
-  
-  
+      } catch (err) {
+        console.error(err);
+        res.status(500).send('Erreur, essaye');
       }
-    })
+    }
   });
+});
+
+
+
 //read consultations
 router.get('/:userEmail', async (req, res) => {
     try {
@@ -80,6 +72,27 @@ router.get('/:userEmail', async (req, res) => {
       res.status(500).send('Erreur');
     }
   });
+
+// Route GET pour obtenir les traitements d'une consultation par ID
+router.get('/:id/traitements', (req, res) => {
+  const consultationId = req.params.id;
+
+  Consultation.findById(consultationId, 'traitements')
+    .then((consultation) => {
+      if (!consultation) {
+        res.status(404).send('Consultation non trouvée');
+      } else {
+        res.status(200).json(consultation.traitements);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Erreur lors de la récupération des traitements de la consultation');
+    });
+});
+
+
+
 
   // delete an consultation by ID
 router.delete('/delete/:id', async (req, res) => {
@@ -118,8 +131,13 @@ router.put('/put/:id', uploadPut, async (req, res) => {
 
       consultation.ordonnance.data = req.file.filename;
       consultation.commentaire = req.body.commentaire;
-      consultation.cout.data = req.file.cout;
-      consultation.remboursement.data = req.file.remboursement;
+      consultation.cout.data = req.body.cout;
+      consultation.remboursement.data = req.body.remboursement;
+      consultation.dateDeCommencement = req.body.dateDeCommencement;
+      consultation.nbrFois = req.body.nbrFois;
+      consultation.nbrJours = req.body.nbrJours;
+      consultation.medicament = req.body.medicament;
+
 
 
 

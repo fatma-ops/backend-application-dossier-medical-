@@ -4,64 +4,43 @@ const multer = require('multer');
 const Analyse = require('./model');
 
 const path = require('path');
-// Serveur d'images
-router.get('/images/:imageName', (req, res) => {
-  const imageName = req.params.imageName;
-  const imagePath = path.join(__dirname, 'uploads', imageName);
-  res.sendFile(imagePath);
-});
-//storage 
-const Storage = multer.diskStorage({
-  destination:'uploads',
-  filename:(req,file,cb)=>{
-    cb(null , file.originalname);
+
+// Configuration de Multer pour télécharger les fichiers
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname))
   }
 });
-const upload = multer({
-  storage:Storage
-}).single('testimage');
-// Upload middleware for PUT request
-const uploadPut = multer({
-  storage: Storage
-}).single('testimage');
+
+const upload = multer({ storage: storage });
 
 
 
 
 // add Analyse
-router.post('/add' , (req , res) => {
-  upload(req , res , (err) => {
-    if(err){
-      console.log(err , 'it has an error')
-    }else {
-      try {
-        const { userEmail } = req.body;
+router.post('/add' ,upload.single('image') ,(req , res) => {
+  try {
+    const { userEmail } = req.body;
+    const { filename } = req.file; // utiliser la propriété filename au lieu de path
+    const newAnalyse = new Analyse ({
+      title:req.body.title,
+      date:req.body.date,
+      contact: req.body.contact,
+      image: filename, // utiliser filename ici
+      cout:req.body.cout,
+      remboursement: req.body.remboursement,
+      userEmail:req.body.userEmail,
+    })
 
-      const newAnalyse = new Analyse ({
-        title:req.body.title,
-        date:req.body.date,
-        contact: req.body.contact,
-
-        image:{
-          data:req.file.filename,
-          contentType:'image/png'
-        },
-        cout:req.body.cout,
-        remboursement: req.body.remboursement,
-        userEmail:req.body.userEmail,
-        
-      })
-
-      newAnalyse.save();
-      res.status(201).json(newAnalyse);
-    }catch (err) {
-        console.error(err);
-        res.status(500).send('Erreur ');
-      }
-
-
-    }
-  })
+    newAnalyse.save();
+    res.status(201).json(newAnalyse);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur ');
+  }
 });
 
 //read analyses
@@ -69,22 +48,39 @@ router.get('/:userEmail', async (req, res) => {
   try {
     const userEmail = req.params.userEmail;
     const analyses = await Analyse.find({ userEmail });
-    const analysedocs = analyses.map(doc => {
+    const updatedAnalyses = analyses.map(analyse => {
       return {
-        ...doc.toObject(),
-        image: doc.imageUrl // <-- return the URL of the image
+        ...analyse.toObject(),
+        image: `uploads/${analyse.image}` // construire un nouveau chemin d'accès relatif pour l'image
       };
     });
-    res.json(analysedocs);
+    res.json(updatedAnalyses);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Erreur');
+    res.status(500).send('erreur');
   }
 });
 
 
 
 
+// get Image by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const analyse = await Analyse.findById(req.params.id);
+    if (!analyse) {
+      return res.status(404).json({ msg: 'Image not found' });
+    }
+    res.set('Content-Type', 'image/jpeg');
+    res.sendFile(analyse.image);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Image not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
 
 
 
@@ -116,7 +112,7 @@ router.delete('/delete/:id', async (req, res) => {
 
 
 // update analyse
-router.put('/put/:id', uploadPut, async (req, res) => {
+router.put('/put/:id', async (req, res) => {
   const id = req.params.id;
 
   try {

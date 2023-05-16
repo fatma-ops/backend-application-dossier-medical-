@@ -15,11 +15,11 @@ router.post('/add' , (req , res) => {
 
       const newTraitement = new Traitement ({
         dateDeCommencement:req.body.dateDeCommencement,
-        nombreFois:req.body.nombreFois,
-        nombreJour:req.body.nombreJour,
+        nbrFois:req.body.nbrFois,
+        nbrJour:req.body.nbrJour,
+        medicament:req.body.medicament,
         userEmail:req.body.userEmail,
         idConsultation:req.body.idConsultation,
-        heureRappel:req.body.heureRappel,
         
       })
 
@@ -34,6 +34,48 @@ router.post('/add' , (req , res) => {
     
   
 });
+
+// add Consultation
+router.post('/add', (req, res) => {
+  upload(req, res, (err) => {
+    if (err) {
+      console.log(err, 'Erreur');
+    } else {
+      try {
+        const { userEmail } = req.body;
+
+        let traitements = [];
+
+        if (Array.isArray(req.body.traitements)) {
+          traitements = req.body.traitements.map((treatment) => {
+            return {
+              date: treatment.date,
+              nbrjours: treatment.nbrjours,
+              nbrfois: treatment.nbrfois,
+              medicament: treatment.medicament,
+            };
+          });
+        }
+
+        const newTraitement = new Consultation({
+          cout: req.body.cout,
+          remboursement: req.body.remboursement,
+          traitements: traitements,
+          idConsultation:req.body.idConsultation,
+          userEmail: req.body.userEmail,
+        });
+
+        newTraitement.save();
+        res.status(201).json(newTraitement);
+      } catch (err) {
+        console.error(err);
+        res.status(500).send('Erreur, essaye');
+      }
+    }
+  });
+});
+
+
 
 
 //read Traitement
@@ -79,12 +121,13 @@ router.put('/put/:id', async (req, res) => {
   
       // Update the treatemenr data with the new file information
       traitement.dateDeCommencement = req.body.dateDeCommencement;
-      traitement.nombreFois = req.body.nombreFois;
-      traitement.nombreJour = req.body.nombreJour;
+      traitement.nbrFois = req.body.nbrFois;
+      traitement.nbrJour = req.body.nbrJour;
+      traitement.medicament = req.body.medicament;
+
       traitement.userEmail = req.body.userEmail;
       traitement.idConsultation = req.body.idConsultation;
 
-      traitement.heureRappel=req.body.heureRappel;
 
   
   

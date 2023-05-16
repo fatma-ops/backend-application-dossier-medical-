@@ -1,15 +1,17 @@
 const mongoose = require('mongoose');
 const Consultation = require('./../consultation/model')
 const traitementSchema = new mongoose.Schema({
-  dateDeCommencement: {
-    type: String,
-   
-  },
-  nombreFois:{type : String } ,
-  nombreJour:{type : String } ,
+  cout: { type: String },
+  remboursement: { type: String },
+  traitements: [{
+    dateDeCommencement: { type: String },
+    nbrfois: { type: String },
+    nbrJours: { type: String },
+    medicament: { type: String }
+  }],
+  
   userEmail:{ type:String },
   idConsultation: { type: mongoose.Schema.Types.ObjectId, ref: 'Consultation' },
-  heureRappel:{ type:String },
 
  
   created: {
