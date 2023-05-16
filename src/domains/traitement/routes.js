@@ -6,58 +6,24 @@ const Traitement = require('./model');
 
 
 
-// add Traitement
-router.post('/add' , (req , res) => {
-  
-    
-      try {
-        const { userEmail } = req.body;
-
-      const newTraitement = new Traitement ({
-        dateDeCommencement:req.body.dateDeCommencement,
-        nbrFois:req.body.nbrFois,
-        nbrJour:req.body.nbrJour,
-        medicament:req.body.medicament,
-        userEmail:req.body.userEmail,
-        idConsultation:req.body.idConsultation,
-        
-      })
-
-      newTraitement.save();
-      res.status(201).json(newTraitement);
-    }catch (err) {
-        console.error(err);
-        res.status(500).send('Erreur ');
-      }
 
 
-    
-  
-});
-
-// add Consultation
+// add traitement
 router.post('/add', (req, res) => {
-  upload(req, res, (err) => {
-    if (err) {
-      console.log(err, 'Erreur');
-    } else {
       try {
         const { userEmail } = req.body;
-
         let traitements = [];
-
         if (Array.isArray(req.body.traitements)) {
           traitements = req.body.traitements.map((treatment) => {
             return {
-              date: treatment.date,
-              nbrjours: treatment.nbrjours,
+              dateDeCommencement: treatment.dateDeCommencement,
               nbrfois: treatment.nbrfois,
+              nbrJours: treatment.nbrJours,
               medicament: treatment.medicament,
             };
           });
         }
-
-        const newTraitement = new Consultation({
+        const newTraitement = new Traitement({
           cout: req.body.cout,
           remboursement: req.body.remboursement,
           traitements: traitements,
@@ -71,8 +37,8 @@ router.post('/add', (req, res) => {
         console.error(err);
         res.status(500).send('Erreur, essaye');
       }
-    }
-  });
+    
+  
 });
 
 
