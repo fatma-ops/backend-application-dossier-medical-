@@ -2,12 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Traitement = require('./model');
 
-
-
-
-
-
-
 // add traitement
 router.post('/add', (req, res) => {
       try {
@@ -40,6 +34,40 @@ router.post('/add', (req, res) => {
     
   
 });
+router.get('/traitements/:userEmail', (req, res) => {
+  const { userEmail } = req.params;
+
+  Traitement.find({ userEmail })
+    .then((traitements) => {
+      res.status(200).json(traitements);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Erreur, essaye');
+    });
+});
+
+
+
+
+// GET treatments by userEmail and consultation ID
+router.get('/:userEmail/:idConsultation', async (req, res) => {
+  try {
+    const userEmail = req.params.userEmail;
+    const idConsultation = req.params.idConsultation;
+    const traitement = await Traitement.findOne({ userEmail: userEmail, idConsultation: idConsultation }).select('traitements');
+    if (traitement && traitement.traitements.length > 0) {
+      res.status(200).json(traitement.traitements);
+    } else {
+      res.status(200).json([]); // Return an empty array if no treatments found
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to retrieve treatments' });
+  }
+});
+
+
 
 
 

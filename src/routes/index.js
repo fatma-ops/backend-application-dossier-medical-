@@ -11,6 +11,7 @@ const VaccinRoutes = require("./../domains/vaccin");
 const MedecinRoutes = require("./../domains/medecin");
 const ConsultationRoutes = require("./../domains/consultation");
 const TraitementRoutes = require("./../domains/traitement");
+const RappelRoutes = require("./../domains/rappel");
 
 
 
@@ -24,6 +25,7 @@ router.use("/vaccin",VaccinRoutes);
 router.use("/medecin",MedecinRoutes);
 router.use("/consultation",ConsultationRoutes);
 router.use("/traitement",TraitementRoutes);
+router.use("/rappel", RappelRoutes);
 
 
 module.exports = router ; 
