@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
 const Consultation = require('./../consultation/model')
 const traitementSchema = new mongoose.Schema({
-  cout: { type: String },
-  remboursement: { type: String },
-  traitements: [{
-    dateDeCommencement: { type: String },
-    nbrfois: { type: String },
-    nbrJours: { type: String },
-    medicament: { type: String }
+  cout: { type: Number }, 
+  remboursement: { type: Number },
+  medicaments: [{
+    
+    nommedicament: { type: String },
+    dateDeCommencement: { type: Date },
+    nbrfois: { type: Number },
+    nbrJours: { type: Number },
   }],
   
   userEmail:{ type:String },

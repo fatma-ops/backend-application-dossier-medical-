@@ -1,17 +1,14 @@
 const mongoose = require('mongoose');
 
-const imageSchema = mongoose.Schema({
-  name: { type: String,
-     required: true },
-  date: {type : String , required: true},
-  image: { type: String},
-  
-  created: {
-    type: Date,
-    required: true,
-    default: Date.now,
-},
-  
+const imageSchema = new mongoose.Schema({
+  photo: {
+    data: Buffer,
+    contentType: String
+  },
+  userEmail: {
+    type: String,
+    required: true
+  }
 });
 
 const Image = mongoose.model('Image', imageSchema);

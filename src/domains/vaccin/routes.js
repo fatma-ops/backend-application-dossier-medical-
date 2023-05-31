@@ -3,30 +3,34 @@ const router = express.Router();
 const multer = require('multer');
 const Vaccin = require('./model');
 
+const fs = require('fs');
 
-//storage 
-const Storage = multer.diskStorage({
-  destination:'uploads',
-  filename:(req,file,cb)=>{
-    cb(null , file.originalname);
-  }
-});
 const upload = multer({
-  storage:Storage
-}).single('testimage');
-// Upload middleware for PUT request
-const uploadPut = multer({
-  storage: Storage
-}).single('testimage');
+  dest: 'uploads/',
+  fileFilter: (req, file, cb) => {
+    // Vérifier si le fichier est un type de fichier accepté (par exemple, JPEG, PNG, GIF)
+    if (
+      file.mimetype === 'image/jpeg' ||
+      file.mimetype === 'image/png' ||
+      file.mimetype === 'image/gif'
+    ) {
+      cb(null, true); // Accepter le fichier
+    } else {
+      cb(new Error('Type de fichier non pris en charge')); // Rejeter le fichier
+    }
+  },
+});
+// Destination folder to save the photos
+
+
+
+
 
 
 
 // add Vaccin
-router.post('/add' , (req , res) => {
-  upload(req , res , (err) => {
-    if(err){
-      console.log(err , 'it has an error')
-    }else {
+router.post('/add' , upload.single('image'), (req , res) => {
+ 
       try {
         const { userEmail } = req.body;
 
@@ -35,11 +39,11 @@ router.post('/add' , (req , res) => {
         maladieCible:req.body.maladieCible,
         date:req.body.date,
         image:{
-          data:req.file.filename,
-          contentType:'image/png'
+        data: fs.readFileSync(req.file.path),
+        contentType: req.file.mimetype
         },
         userEmail:req.body.userEmail,
-        commentaire : req.body.commentaire
+        commentaire : req.body.commentaire 
         
       })
 
@@ -49,21 +53,37 @@ router.post('/add' , (req , res) => {
         console.error(err);
         res.status(500).send('erreur ');
       }
-
-
-    }
-  })
 });
 
-//read vaccines
-router.get('/:userEmail', async (req, res) => {
+
+//read vaccins 
+router.get('/user/:userEmail', async (req, res) => {
   try {
     const userEmail = req.params.userEmail;
-    const vaccines = await Vaccin.find({ userEmail });
-    res.json(vaccines);
+
+    const vaccines = await Vaccin.find({ userEmail: userEmail });
+    res.status(200).json(vaccines);
   } catch (err) {
-    console.error(err);
-    res.status(500).send('erreur');
+    console.error('Error fetching vaccines:', err);
+    res.sendStatus(500).send('erreur');
+  }
+});
+//Affiche image 
+router.get('/imageVaccin/:id', async (req, res) => {
+  try {
+    const vaccin = await Vaccin.findById(req.params.id);
+
+   
+
+    res.status(200).json({
+      image: {
+        contentType: vaccin.image.contentType,
+        data: vaccin.image.data.toString('base64')
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching image:', err);
+    res.sendStatus(500);
   }
 });
 
@@ -85,45 +105,38 @@ router.delete('/delete/:id', async (req, res) => {
 
 
 
-
-
-
-
-
-
-// update vaccin
-router.put('/put/:id', uploadPut, async (req, res) => {
-  const id = req.params.id;
-
+router.put('/modifier/:id', upload.single('image'), async (req, res) => {
   try {
-    // Find the Vaccin to update by ID
-    const vaccin = await Vaccin.findById(id);
+    const { id } = req.params;
+    const { userEmail } = req.body;
 
-    if (!vaccin) {
-      return res.status(404).send('Vaccin introuvable');
+    const updatedVaccin = {
+      title: req.body.title,
+      maladieCible: req.body.maladieCible,
+      date: req.body.date,
+      userEmail: req.body.userEmail,
+      commentaire: req.body.commentaire,
+    };
+
+    if (req.file) {
+      updatedVaccin.image = {
+        data: fs.readFileSync(req.file.path),
+        contentType: req.file.mimetype,
+      };
     }
-
-    // Update the Vaccin data with the new file information
-    vaccin.title = req.body.title;
-    vaccin.maladieCible = req.body.maladieCible;
-
-    vaccin.date = req.body.date;
-    vaccin.userEmail = req.body.userEmail;
-
-    vaccin.image.data = req.file.filename;
-    vaccin.commentaire = req.body.commentaire;
-
-
-    // Save the updated Vaccin to the database
-    const updatedVaccin = await vaccin.save();
-
-    // Send the updated Vaccin data back to the client
-    res.status(200).json(updatedVaccin);
+    const result = await Vaccin.findByIdAndUpdate(id, updatedVaccin, { new: true });
+    if (!result) {
+      return res.status(404).json({ message: 'Vaccin introuvable' });
+    }
+    res.status(200).json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Erreur lors de la mise à jour du vaccin');
+    res.status(500).send('Erreur lors de la modification du vaccin');
   }
 });
+
+
+
 // search vaccines
 router.get('/search', async (req, res) => {
   const searchQuery = req.query.q; // Get the search query from the request query parameters

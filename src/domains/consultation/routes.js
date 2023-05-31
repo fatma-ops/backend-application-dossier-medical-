@@ -4,60 +4,63 @@ const multer = require('multer');
 
 const Consultation = require('./model');
 
-const path = require('path');
+const fs = require('fs');
 
-//storage 
-const Storage = multer.diskStorage({
-  destination:'uploads',
-  filename:(req,file,cb)=>{
-    cb(null , file.originalname);
-  }
-});
 const upload = multer({
-  storage:Storage
-}).single('testimage');
-// Upload middleware for PUT request
-const uploadPut = multer({
-  storage: Storage
-}).single('testimage');
-
-// Serveur d'images
-router.get('/images/:imageName', (req, res) => {
-  const imageName = req.params.imageName;
-  const imagePath = path.join(__dirname, 'uploads', imageName);
-  res.sendFile(imagePath);
+  dest: 'uploads/',
+  fileFilter: (req, file, cb) => {
+    // Vérifier si le fichier est un type de fichier accepté (par exemple, JPEG, PNG, GIF)
+    if (
+      file.mimetype === 'image/jpeg' ||
+      file.mimetype === 'image/png' ||
+      file.mimetype === 'image/gif'
+    ) {
+      cb(null, true); // Accepter le fichier
+    } else {
+      cb(new Error('Type de fichier non pris en charge')); // Rejeter le fichier
+    }
+  },
 });
-
+// Destination folder to save the photos
 
 // add Consultation
-router.post('/add', (req, res) => {
-  upload(req, res, (err) => {
-    if (err) {
-      console.log(err, 'Erreur');
-    } else {
-      try {
-        const { userEmail } = req.body;
-        const newConsultation = new Consultation({
-          objet: req.body.objet,
-          type:req.body.type,
-          date: req.body.date,
-          contact: req.body.contact,
-          ordonnance: {
-            data: req.file.filename,
-            contentType: 'image/png',
-          },
-          userEmail: req.body.userEmail,
-        });
+router.post('/add', upload.single('ordonnance'), (req, res) => {
+  try {
+    const { userEmail } = req.body;
+    let cout = req.body.cout ? parseFloat(req.body.cout) : 0;
+    let remboursement = req.body.remboursement ? parseFloat(req.body.remboursement) : 0;
 
-        newConsultation.save();
-        res.status(201).json(newConsultation);
-      } catch (err) {
-        console.error(err);
-        res.status(500).send('Erreur, essaye');
-      }
+    if (isNaN(cout) || isNaN(remboursement) || cout < 0 || remboursement < 0) {
+      return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
     }
-  });
+
+    const newConsultation = new Consultation({
+      objet: req.body.objet,
+      type: req.body.type,
+      date: req.body.date,
+      contact: req.body.contact,
+      cout: cout,
+      remboursement: remboursement,
+      userEmail: req.body.userEmail, 
+    });
+
+    if (req.file) {
+      newConsultation.ordonnance = {
+        data: fs.readFileSync(req.file.path),
+        contentType: req.file.mimetype,
+      };
+    }
+
+    newConsultation.save();
+    res.status(201).json(newConsultation);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur, essaye');
+  }
 });
+
+
+
 
 
 
@@ -92,6 +95,29 @@ router.get('/:id/traitements', (req, res) => {
 });
 
 
+//Affiche Ordonnance
+router.get('/imageConsultation/:id', async (req, res) => {
+  try {
+    const consultation = await Consultation.findById(req.params.id);
+
+   
+
+    res.status(200).json({
+      ordonnance: {
+        contentType: consultation.ordonnance.contentType,
+        data: consultation.ordonnance.data.toString('base64')
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching image:', err);
+    res.sendStatus(500);
+  }
+});
+
+
+
+
+
 
 
   // delete an consultation by ID
@@ -109,49 +135,38 @@ router.delete('/delete/:id', async (req, res) => {
     }
   });
 
-  // update consultation
-router.put('/put/:id', uploadPut, async (req, res) => {
-    const id = req.params.id;
-  
+  router.put('/modifier/:id', upload.single('ordonnance'), async (req, res) => {
     try {
-      // Find the consultation to update by ID
-      const consultation = await Consultation.findById(id);
+      const { id } = req.params;
+      const { userEmail } = req.body;
   
-      if (!consultation) {
-        return res.status(404).send('consultation introuvable');
+      const updatedConsulation = {
+        objet: req.body.objet,
+          type:req.body.type,
+          date: req.body.date,
+          contact: req.body.contact,
+        userEmail: req.body.userEmail,
+        cout: req.body.cout,
+          remboursement:req.body.remboursement,
+      };
+  
+      if (req.file) {
+        updatedConsulation.ordonnance = {
+          data: fs.readFileSync(req.file.path),
+          contentType: req.file.mimetype,
+        };
       }
-  
-      // Update the consultation data with the new file information
-      consultation.type = req.body.type;
-      consultation.date = req.body.date;
-      consultation.contact = req.body.contact;
-
-      consultation.userEmail = req.body.userEmail;
-      consultation.idTraitement = req.body.idTraitement;
-
-      consultation.ordonnance.data = req.file.filename;
-      consultation.commentaire = req.body.commentaire;
-      consultation.cout.data = req.body.cout;
-      consultation.remboursement.data = req.body.remboursement;
-      consultation.dateDeCommencement = req.body.dateDeCommencement;
-      consultation.nbrFois = req.body.nbrFois;
-      consultation.nbrJours = req.body.nbrJours;
-      consultation.medicament = req.body.medicament;
-
-
-
-
-  
-      // Save the updated consultation to the database
-      const updatedConsulation = await consultation.save();
-  
-      // Send the consultation image data back to the client
-      res.status(200).json(updatedConsulation);
+      const result = await Consultation.findByIdAndUpdate(id, updatedConsulation, { new: true });
+      if (!result) {
+        return res.status(404).json({ message: 'consultation introuvable' });
+      }
+      res.status(200).json(result);
     } catch (err) {
       console.error(err);
-      res.status(500).send('Erreur lors de la mise à jour de la consultation');
+      res.status(500).send('Erreur lors de la modification du consultation');
     }
   });
+
   
   
 

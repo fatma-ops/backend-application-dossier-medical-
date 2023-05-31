@@ -4,36 +4,67 @@ const Traitement = require('./model');
 
 // add traitement
 router.post('/add', (req, res) => {
-      try {
-        const { userEmail } = req.body;
-        let traitements = [];
-        if (Array.isArray(req.body.traitements)) {
-          traitements = req.body.traitements.map((treatment) => {
-            return {
-              dateDeCommencement: treatment.dateDeCommencement,
-              nbrfois: treatment.nbrfois,
-              nbrJours: treatment.nbrJours,
-              medicament: treatment.medicament,
-            };
-          });
-        }
-        const newTraitement = new Traitement({
-          cout: req.body.cout,
-          remboursement: req.body.remboursement,
-          traitements: traitements,
-          idConsultation:req.body.idConsultation,
-          userEmail: req.body.userEmail,
-        });
+  try {
+    const { userEmail } = req.body;
+    let medicaments = [];
 
-        newTraitement.save();
-        res.status(201).json(newTraitement);
-      } catch (err) {
-        console.error(err);
-        res.status(500).send('Erreur, essaye');
-      }
-    
-  
+    if (Array.isArray(req.body.medicaments)) {
+      medicaments = req.body.medicaments.map((medicament) => {
+        return {
+          nommedicament: medicament.nommedicament,
+          dateDeCommencement: medicament.dateDeCommencement,
+          nbrfois: parseInt(medicament.nbrfois),
+          nbrJours: parseInt(medicament.nbrJours),
+        };
+      });
+    }
+
+    const cout = req.body.cout ? parseFloat(req.body.cout) : 0;
+    const remboursement = req.body.remboursement ? parseFloat(req.body.remboursement) : 0;
+
+    if (cout < 0 || remboursement < 0) {
+      return res.status(400).json({ message: 'Le cout et le remboursement ne peuvent pas être négatifs.' });
+    }
+
+    const newTraitement = new Traitement({
+      cout: cout,
+      remboursement: remboursement,
+      medicaments: medicaments,
+      idConsultation: req.body.idConsultation,
+      userEmail: req.body.userEmail,
+    });
+
+    if (medicaments.some((medicament) => medicament.nbrfois <= 0 || Number.isNaN(medicament.nbrfois) || Number.isInteger(medicament.nbrfois) === false)) {
+      return res.status(400).json({ message: 'Le nombre de fois est invalide.' });
+    }
+
+    if (medicaments.some((medicament) => medicament.nbrJours <= 0 || Number.isNaN(medicament.nbrJours) || Number.isInteger(medicament.nbrJours) === false)) {
+      return res.status(400).json({ message: 'Le nombre de jours est invalide.' });
+    }
+
+    if (medicaments.some((medicament) => medicament.nbrfois > 10)) {
+      return res.status(400).json({ message: 'Le nombre de fois ne doit pas dépasser 10.' });
+    }
+
+    if (medicaments.some((medicament) => medicament.nbrJours > 30)) {
+      return res.status(400).json({ message: 'Le nombre de jours ne doit pas dépasser 30.' });
+    }
+
+    newTraitement.save();
+    res.status(201).json(newTraitement);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur, essaye');
+  }
 });
+
+
+
+
+
+
+
+
 router.get('/traitements/:userEmail', (req, res) => {
   const { userEmail } = req.params;
 
@@ -72,17 +103,7 @@ router.get('/:userEmail/:idConsultation', async (req, res) => {
 
 
 
-//read Traitement
-router.get('/:idConsultation', async (req, res) => {
-    try {
-      const idConsultation = req.params.idConsultation;
-      const traitements = await Traitement.find({ idConsultation });
-      res.json(traitements);
-    } catch (err) {
-      console.error(err);
-      res.status(500).send('Erreur');
-    }
-  });
+
 
 
 

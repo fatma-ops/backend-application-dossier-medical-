@@ -9,7 +9,7 @@ const { email , password } = data ;
 const fetchedUser = await User.findOne({email});
 
 if(!fetchedUser) {
-   throw Error ("Mauvaises informations d'identification saisies !")
+   throw Error ("identifiants invalides")
 }
 if(!fetchedUser.verified){
    throw Error ("Votre adresse e-mail n'a pas encore été vérifiée. Vérifiez votre boîte de réception.");

@@ -1,54 +1,76 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const Image = require('./model');
+const fs = require('fs');
 
-// Configuration de Multer pour télécharger les fichiers
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname))
-  }
-});
+const upload = multer({ dest: 'uploads/' }); // Destination folder to save the photos
 
-const upload = multer({ storage: storage });
-
-// Route pour télécharger une image
-router.post('/upload', upload.single('image'), async (req, res) => {
+router.post('/upload', upload.single('photo'), async (req, res) => {
   try {
-    const { filename, path } = req.file;
-    const { name, date } = req.body;
     const newImage = new Image({
-      name,
-      date,
-      image: path,
+      photo: {
+        data: fs.readFileSync(req.file.path),
+        contentType: req.file.mimetype
+      },
+      userEmail: req.body.userEmail
     });
+
     await newImage.save();
-    res.send('Image téléchargée avec succès');
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Une erreur est survenue lors du téléchargement de l\'image.');
+
+    res.status(200).json(newImage);
+  } catch (err) {
+    console.error('Error uploading image:', err);
+    res.sendStatus(500);
   }
 });
 
-router.get('/image/:imageName', (req, res) => {
-  const imageName = req.params.imageName;
-  const imagePath = path.join(__dirname, 'uploads', imageName);
-  fs.readFile(imagePath, (err, data) => {
-    if (err) {
-      console.log(err);
-      return res.status(404).end();
+router.get('/images/:id', async (req, res) => {
+  try {
+    const image = await Image.findById(req.params.id);
+
+    if (!image) {
+      return res.status(404).send('Image not found');
     }
-    res.writeHead(200, { 'Content-Type': 'image/jpeg' });
-    res.end(data);
-  });
+
+    res.status(200).json({
+      photo: {
+        contentType: image.image.contentType,
+        data: image.image.data.toString('base64')
+      },
+      userEmail: image.userEmail
+    });
+  } catch (err) {
+    console.error('Error fetching image:', err);
+    res.sendStatus(500);
+  }
 });
+
+
+router.get('/images/user/:userEmail', async (req, res) => {
+  try {
+    const userEmail = req.params.userEmail;
+
+    const images = await Image.find({ userEmail: userEmail });
+
+    if (images.length === 0) {
+      return res.status(404).send('No images found for the provided userEmail');
+    }
+
+    res.status(200).json(images);
+  } catch (err) {
+    console.error('Error fetching images:', err);
+    res.sendStatus(500);
+  }
+});
+
+
+
+
+
 
 module.exports = router;
+
   
   
   

@@ -3,84 +3,169 @@ const router = express.Router();
 const multer = require('multer');
 const Analyse = require('./model');
 
-const path = require('path');
 
-// Configuration de Multer pour télécharger les fichiers
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
+const fs = require('fs');
+
+const upload = multer({
+  dest: 'uploads/',
+  fileFilter: (req, file, cb) => {
+    // Vérifier si le fichier est un type de fichier accepté (par exemple, JPEG, PNG, GIF)
+    if (
+      file.mimetype === 'image/jpeg' ||
+      file.mimetype === 'image/png' ||
+      file.mimetype === 'image/gif'
+    ) {
+      cb(null, true); // Accepter le fichier
+    } else {
+      cb(new Error('Type de fichier non pris en charge')); // Rejeter le fichier
+    }
   },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname))
-  }
 });
 
-const upload = multer({ storage: storage });
 
 
-
-
-// add Analyse
-router.post('/add' ,upload.single('image') ,(req , res) => {
+router.post('/add', upload.single('image'), async (req, res) => {
   try {
     const { userEmail } = req.body;
-    const { filename } = req.file; // utiliser la propriété filename au lieu de path
-    const newAnalyse = new Analyse ({
-      title:req.body.title,
-      date:req.body.date,
-      contact: req.body.contact,
-      image: filename, // utiliser filename ici
-      cout:req.body.cout,
-      remboursement: req.body.remboursement,
-      userEmail:req.body.userEmail,
-    })
+    let cout = req.body.cout ? parseFloat(req.body.cout) : 0;
+    let remboursement = req.body.remboursement ? parseFloat(req.body.remboursement) : 0;
 
-    newAnalyse.save();
+    if (isNaN(cout) || isNaN(remboursement) || cout < 0 || remboursement < 0) {
+      return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
+    }
+
+    const newAnalyse = new Analyse({
+      title: req.body.title,
+      date: req.body.date,
+      contact: req.body.contact,
+      cout: cout,
+      remboursement: remboursement,
+      userEmail: req.body.userEmail, 
+    });
+
+    if (req.file) {
+      newAnalyse.image = {
+        data: fs.readFileSync(req.file.path),
+        contentType: req.file.mimetype,
+      };
+    }
+
+    await newAnalyse.save();
     res.status(201).json(newAnalyse);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Erreur ');
+    res.status(500).send('Erreur lors de l\'enregistrement de l\'analyse dans la base de données');
   }
 });
+
+
+// add Analyse
+router.post('/add/multiple', upload.array('images', 3), async (req, res) => {
+  try {
+    const { userEmail } = req.body;
+    let cout = req.body.cout ? parseFloat(req.body.cout) : 0;
+    let remboursement = req.body.remboursement ? parseFloat(req.body.remboursement) : 0;
+
+    if (isNaN(cout) || isNaN(remboursement) || cout < 0 || remboursement < 0) {
+      return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
+    }
+
+    const newAnalyse = new Analyse({
+      title: req.body.title,
+      date: req.body.date,
+      contact: req.body.contact,
+      cout: cout,
+      remboursement: remboursement,
+      userEmail: req.body.userEmail, 
+      images: []
+    });
+
+    if (req.files) {
+      for (let i = 0; i < req.files.length; i++) {
+        newAnalyse.images.push({
+          data: fs.readFileSync(req.files[i].path),
+          contentType: req.files[i].mimetype,
+        });
+      }
+    }
+
+    await newAnalyse.save();
+    res.status(201).json(newAnalyse);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur lors de l\'enregistrement de l\'analyse dans la base de données');
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //read analyses
 router.get('/:userEmail', async (req, res) => {
   try {
     const userEmail = req.params.userEmail;
-    const analyses = await Analyse.find({ userEmail });
-    const updatedAnalyses = analyses.map(analyse => {
-      return {
-        ...analyse.toObject(),
-        image: `uploads/${analyse.image}` // construire un nouveau chemin d'accès relatif pour l'image
-      };
-    });
-    res.json(updatedAnalyses);
+
+    const analyses = await Analyse.find({ userEmail: userEmail });
+    res.status(200).json(analyses);
+  } catch (err) {
+    console.error('Error fetching analyses', err);
+    res.sendStatus(500).send('erreur');
+  }
+});
+
+
+
+router.get('/analyses/:userEmail', (req, res) => {
+  try {
+    const userEmail = req.params.userEmail;
+    Analyse.find({ userEmail: userEmail })
+      .then(analyses => {
+        res.status(200).json(analyses);
+      })
+      .catch(err => {
+        console.error(err);
+        res.status(500).send('Erreur');
+      });
   } catch (err) {
     console.error(err);
-    res.status(500).send('erreur');
+    res.status(500).send('Erreur');
   }
 });
 
 
-
-
-// get Image by ID
-router.get('/:id', async (req, res) => {
+//Affiche image 
+router.get('/imageAnalyse/:id', async (req, res) => {
   try {
     const analyse = await Analyse.findById(req.params.id);
-    if (!analyse) {
-      return res.status(404).json({ msg: 'Image not found' });
-    }
-    res.set('Content-Type', 'image/jpeg');
-    res.sendFile(analyse.image);
+
+   
+
+    res.status(200).json({
+      image: {
+        contentType: analyse.image.contentType,
+        data: analyse.image.data.toString('base64')
+      },
+    });
   } catch (err) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'Image not found' });
-    }
-    res.status(500).send('Server Error');
+    console.error('Error fetching image:', err);
+    res.sendStatus(500);
   }
 });
+
+
+
+
 
 
 
