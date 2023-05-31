@@ -23,7 +23,7 @@ const upload = multer({
 });
 
 
-
+//Add Analyse avec seule image ______________________________________________________
 router.post('/add', upload.single('image'), async (req, res) => {
   try {
     const { userEmail } = req.body;
@@ -59,7 +59,7 @@ router.post('/add', upload.single('image'), async (req, res) => {
 });
 
 
-// add Analyse
+// add Analyse avec multiple images _________________________________________________
 router.post('/add/multiple', upload.array('images', 3), async (req, res) => {
   try {
     const { userEmail } = req.body;
@@ -97,19 +97,7 @@ router.post('/add/multiple', upload.array('images', 3), async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+//___________________________________________________________________________________
 
 //read analyses
 router.get('/:userEmail', async (req, res) => {
@@ -123,26 +111,7 @@ router.get('/:userEmail', async (req, res) => {
     res.sendStatus(500).send('erreur');
   }
 });
-
-
-
-router.get('/analyses/:userEmail', (req, res) => {
-  try {
-    const userEmail = req.params.userEmail;
-    Analyse.find({ userEmail: userEmail })
-      .then(analyses => {
-        res.status(200).json(analyses);
-      })
-      .catch(err => {
-        console.error(err);
-        res.status(500).send('Erreur');
-      });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur');
-  }
-});
-
+//__________________________________________________________________________________
 
 //Affiche image 
 router.get('/imageAnalyse/:id', async (req, res) => {
@@ -163,16 +132,28 @@ router.get('/imageAnalyse/:id', async (req, res) => {
   }
 });
 
+//__________________________________________________________________________________
+//Affiche les images d'analyse
+router.get('/imagesAnalyse/:id', async (req, res) => {
+  try {
+    const analyse = await Analyse.findById(req.params.id);
+    const images = analyse.images; // Supposons que les images soient stockées dans un tableau appelé "images"
 
+    const imageResponses = images.map((image) => ({
+      contentType: image.contentType,
+      data: image.data.toString('base64')
+    }));
 
+    res.status(200).json({
+      images: imageResponses
+    });
+  } catch (err) {
+    console.error('Error fetching images:', err);
+    res.sendStatus(500);
+  }
+});
 
-
-
-
-
-
-
-
+//____________________________________________________________________________________
 // delete an analysis by ID
 router.delete('/delete/:id', async (req, res) => {
   try {
@@ -187,15 +168,7 @@ router.delete('/delete/:id', async (req, res) => {
     res.status(500).send('Erreur');
   }
 });
-
-
-
-
-
-
-
-
-
+//Ca marche pas 
 // update analyse
 router.put('/put/:id', async (req, res) => {
   const id = req.params.id;
@@ -230,6 +203,8 @@ router.put('/put/:id', async (req, res) => {
     res.status(500).send('Erreur lors de la mise à jour de la analyse');
   }
 });
+
+//__________________________________________________________________________________
 // search analyses
 router.get('/search', async (req, res) => {
   const searchQuery = req.query.q; // Get the search query from the request query parameters

@@ -9,8 +9,11 @@ const vaccinSchema = new mongoose.Schema({
   date:{type : String } ,
   userEmail:{ type:String , required: true },
 
-  image: { data: Buffer, contentType: String },
- commentaire:{type:String }
+  images: [{
+    data: { type: Buffer },
+    contentType: { type: String }
+  }]
+  , commentaire:{type:String }
 
   ,created: {
     type: Date,

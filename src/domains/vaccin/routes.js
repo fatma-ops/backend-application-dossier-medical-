@@ -20,15 +20,8 @@ const upload = multer({
     }
   },
 });
-// Destination folder to save the photos
 
-
-
-
-
-
-
-// add Vaccin
+// add Vaccin avec une seule photo_______________________________________________
 router.post('/add' , upload.single('image'), (req , res) => {
  
       try {
@@ -54,7 +47,42 @@ router.post('/add' , upload.single('image'), (req , res) => {
         res.status(500).send('erreur ');
       }
 });
+//________________________________________________________________________________
+router.post('/add/multiple', upload.array('images', 3), async (req, res) => {
+  try {
+    const { userEmail } = req.body;
+    
 
+    
+
+    const newVaccin = new Vaccin({
+      title:req.body.title,
+        maladieCible:req.body.maladieCible,
+        date:req.body.date,
+     
+      userEmail: req.body.userEmail, 
+      images: [],
+      commentaire : req.body.commentaire 
+
+    });
+
+    if (req.files) {
+      for (let i = 0; i < req.files.length; i++) {
+        newVaccin.images.push({
+          data: fs.readFileSync(req.files[i].path),
+          contentType: req.files[i].mimetype,
+        });
+      }
+    }
+
+    await newVaccin.save();
+    res.status(201).json(newVaccin);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur lors de l\'enregistrement de l\'analyse dans la base de données');
+  }
+});
+//________________________________________________________________________
 
 //read vaccins 
 router.get('/user/:userEmail', async (req, res) => {
@@ -68,21 +96,22 @@ router.get('/user/:userEmail', async (req, res) => {
     res.sendStatus(500).send('erreur');
   }
 });
-//Affiche image 
-router.get('/imageVaccin/:id', async (req, res) => {
+//Affiche les images du vaccin
+router.get('/imagesVaccin/:id', async (req, res) => {
   try {
     const vaccin = await Vaccin.findById(req.params.id);
+    const images = vaccin.images; // Supposons que les images soient stockées dans un tableau appelé "images"
 
-   
+    const imageResponses = images.map((image) => ({
+      contentType: image.contentType,
+      data: image.data.toString('base64')
+    }));
 
     res.status(200).json({
-      image: {
-        contentType: vaccin.image.contentType,
-        data: vaccin.image.data.toString('base64')
-      },
+      images: imageResponses
     });
   } catch (err) {
-    console.error('Error fetching image:', err);
+    console.error('Error fetching images:', err);
     res.sendStatus(500);
   }
 });
@@ -104,7 +133,7 @@ router.delete('/delete/:id', async (req, res) => {
 });
 
 
-
+//Update analyse_____________________________________________________________________
 router.put('/modifier/:id', upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
@@ -135,7 +164,7 @@ router.put('/modifier/:id', upload.single('image'), async (req, res) => {
   }
 });
 
-
+//________________________________________________________________________________
 
 // search vaccines
 router.get('/search', async (req, res) => {

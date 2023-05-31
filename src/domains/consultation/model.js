@@ -9,8 +9,10 @@ const consultationSchema = new mongoose.Schema({
   },
   date: {type : String },
   contact: { type: String },
-  ordonnance: { data: Buffer, contentType: String },
-  userEmail: { type: String },
+  ordonnance: [{ 
+    data: { type: Buffer },
+    contentType: { type: String }
+  }],  userEmail: { type: String },
   commentaire: { type: String },
   cout: { type: Number },
   remboursement: { type: Number },

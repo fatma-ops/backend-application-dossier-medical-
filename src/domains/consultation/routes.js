@@ -58,6 +58,44 @@ router.post('/add', upload.single('ordonnance'), (req, res) => {
     res.status(500).send('Erreur, essaye');
   }
 });
+// add consultation avec multiple images _________________________________________________
+router.post('/add/multiple', upload.array('ordonnance', 3), async (req, res) => {
+  try {
+    const { userEmail } = req.body;
+    let cout = req.body.cout ? parseFloat(req.body.cout) : 0;
+    let remboursement = req.body.remboursement ? parseFloat(req.body.remboursement) : 0;
+
+    if (isNaN(cout) || isNaN(remboursement) || cout < 0 || remboursement < 0) {
+      return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
+    }
+
+    const newConsultation = new Consultation({
+      objet: req.body.objet,
+      type: req.body.type,
+      date: req.body.date,
+      contact: req.body.contact,
+      cout: cout,
+      remboursement: remboursement,
+      userEmail: req.body.userEmail, 
+      ordonnonces: []
+    });
+
+    if (req.files) {
+      for (let i = 0; i < req.files.length; i++) {
+        newConsultation.ordonnance.push({
+          data: fs.readFileSync(req.files[i].path),
+          contentType: req.files[i].mimetype,
+        });
+      }
+    }
+
+    await newConsultation.save();
+    res.status(201).json(newConsultation);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur lors de l\'enregistrement de l\'analyse dans la base de données');
+  }
+});
 
 
 
@@ -76,40 +114,23 @@ router.get('/:userEmail', async (req, res) => {
     }
   });
 
-// Route GET pour obtenir les traitements d'une consultation par ID
-router.get('/:id/traitements', (req, res) => {
-  const consultationId = req.params.id;
 
-  Consultation.findById(consultationId, 'traitements')
-    .then((consultation) => {
-      if (!consultation) {
-        res.status(404).send('Consultation non trouvée');
-      } else {
-        res.status(200).json(consultation.traitements);
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send('Erreur lors de la récupération des traitements de la consultation');
-    });
-});
-
-
-//Affiche Ordonnance
-router.get('/imageConsultation/:id', async (req, res) => {
+//Affiche les images d'analyse
+router.get('/imagesConsultation/:id', async (req, res) => {
   try {
     const consultation = await Consultation.findById(req.params.id);
+    const images = consultation.ordonnance; // Supposons que les images soient stockées dans un tableau appelé "images"
 
-   
+    const imageResponses = images.map((image) => ({
+      contentType: image.contentType,
+      data: image.data.toString('base64')
+    }));
 
     res.status(200).json({
-      ordonnance: {
-        contentType: consultation.ordonnance.contentType,
-        data: consultation.ordonnance.data.toString('base64')
-      },
+      images: imageResponses
     });
   } catch (err) {
-    console.error('Error fetching image:', err);
+    console.error('Error fetching images:', err);
     res.sendStatus(500);
   }
 });
