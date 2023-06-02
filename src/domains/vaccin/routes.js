@@ -134,35 +134,42 @@ router.delete('/delete/:id', async (req, res) => {
 
 
 //Update analyse_____________________________________________________________________
-router.put('/modifier/:id', upload.single('image'), async (req, res) => {
+router.put('/modifier/vaccin/:id', upload.array('images', 3), async (req, res) => {
   try {
-    const { id } = req.params;
-    const { userEmail } = req.body;
+    const vaccinId = req.params.id;
+    const { title, date, maladieCible,commentaire ,userEmail } = req.body;
 
-    const updatedVaccin = {
-      title: req.body.title,
-      maladieCible: req.body.maladieCible,
-      date: req.body.date,
-      userEmail: req.body.userEmail,
-      commentaire: req.body.commentaire,
-    };
+   
+    const vaccin = await Vaccin.findById(vaccinId);
+    if (!vaccin) {
+      return res.status(404).json({ message: 'Analyse non trouvée.' });
+    }
 
-    if (req.file) {
-      updatedVaccin.image = {
-        data: fs.readFileSync(req.file.path),
-        contentType: req.file.mimetype,
-      };
+    vaccin.title = title;
+    vaccin.date = date;
+    vaccin.maladieCible = maladieCible;
+    vaccin.commentaire = commentaire;
+
+    vaccin.userEmail = userEmail;
+
+    if (req.files) {
+      vaccin.images = [];
+      for (let i = 0; i < req.files.length; i++) {
+        vaccin.images.push({
+          data: fs.readFileSync(req.files[i].path),
+          contentType: req.files[i].mimetype,
+        });
+      }
     }
-    const result = await Vaccin.findByIdAndUpdate(id, updatedVaccin, { new: true });
-    if (!result) {
-      return res.status(404).json({ message: 'Vaccin introuvable' });
-    }
-    res.status(200).json(result);
+
+    await vaccin.save();
+    res.json(vaccin);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Erreur lors de la modification du vaccin');
+    res.status(500).send("Erreur lors de la modification de l'analyse dans la base de données");
   }
 });
+
 
 //________________________________________________________________________________
 

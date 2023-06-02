@@ -36,6 +36,8 @@ router.post('/add', upload.single('image'), async (req, res) => {
 
     const newAnalyse = new Analyse({
       title: req.body.title,
+      type: req.body.type,
+
       date: req.body.date,
       contact: req.body.contact,
       cout: cout,
@@ -72,6 +74,8 @@ router.post('/add/multiple', upload.array('images', 3), async (req, res) => {
 
     const newAnalyse = new Analyse({
       title: req.body.title,
+      type: req.body.type,
+
       date: req.body.date,
       contact: req.body.contact,
       cout: cout,
@@ -96,6 +100,61 @@ router.post('/add/multiple', upload.array('images', 3), async (req, res) => {
     res.status(500).send('Erreur lors de l\'enregistrement de l\'analyse dans la base de données');
   }
 });
+
+//________________________________________________________________________________
+router.put('/modifier/analyse/:id', upload.array('images', 3), async (req, res) => {
+  try {
+    const analyseId = req.params.id;
+    const { title,type, date, contact, cout, remboursement, userEmail } = req.body;
+
+    if (isNaN(parseFloat(cout)) || isNaN(parseFloat(remboursement)) || parseFloat(cout) < 0 || parseFloat(remboursement) < 0) {
+      return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
+    }
+
+    const analyse = await Analyse.findById(analyseId);
+    if (!analyse) {
+      return res.status(404).json({ message: 'Analyse non trouvée.' });
+    }
+
+    analyse.title = title;
+    analyse.type = type;
+
+    analyse.date = date;
+    analyse.contact = contact;
+    analyse.cout = parseFloat(cout);
+    analyse.remboursement = parseFloat(remboursement);
+    analyse.userEmail = userEmail;
+
+    if (req.files) {
+      analyse.images = [];
+      for (let i = 0; i < req.files.length; i++) {
+        analyse.images.push({
+          data: fs.readFileSync(req.files[i].path),
+          contentType: req.files[i].mimetype,
+        });
+      }
+    }
+
+    await analyse.save();
+    res.json(analyse);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erreur lors de la modification de l'analyse dans la base de données");
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //___________________________________________________________________________________
 
@@ -168,42 +227,6 @@ router.delete('/delete/:id', async (req, res) => {
     res.status(500).send('Erreur');
   }
 });
-//Ca marche pas 
-// update analyse
-router.put('/put/:id', async (req, res) => {
-  const id = req.params.id;
-
-  try {
-    // Find the image to update by ID
-    const analyse = await Analyse.findById(id);
-
-    if (!analyse) {
-      return res.status(404).send('Analyse introuvable');
-    }
-
-    // Update the image data with the new file information
-    analyse.title = req.body.title;
-    analyse.date = req.body.date;
-    analyse.contact = req.body.contact;
-
-    analyse.userEmail = req.body.userEmail;
-
-    analyse.image.data = req.file.filename;
-    analyse.cout.data = req.body.cout;
-    analyse.remboursement = req.body.remboursement;
-
-
-    // Save the updated image to the database
-    const updatedAnalyse = await analyse.save();
-
-    // Send the updated image data back to the client
-    res.status(200).json(updatedAnalyse);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Erreur lors de la mise à jour de la analyse');
-  }
-});
-
 //__________________________________________________________________________________
 // search analyses
 router.get('/search', async (req, res) => {

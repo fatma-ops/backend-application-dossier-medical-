@@ -33,6 +33,9 @@ router.post('/add', upload.single('ordonnance'), (req, res) => {
     if (isNaN(cout) || isNaN(remboursement) || cout < 0 || remboursement < 0) {
       return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
     }
+    if (cout < 0 || remboursement < 0 || cout > 1000000 || remboursement > 1000000) {
+      return res.status(400).json({ message: 'Le cout et le remboursement doivent être compris entre 0 et 1,000,000.' });
+    }
 
     const newConsultation = new Consultation({
       objet: req.body.objet,
@@ -77,7 +80,7 @@ router.post('/add/multiple', upload.array('ordonnance', 3), async (req, res) => 
       cout: cout,
       remboursement: remboursement,
       userEmail: req.body.userEmail, 
-      ordonnonces: []
+      ordonnonce: []
     });
 
     if (req.files) {
@@ -156,38 +159,47 @@ router.delete('/delete/:id', async (req, res) => {
     }
   });
 
-  router.put('/modifier/:id', upload.single('ordonnance'), async (req, res) => {
+ 
+
+  router.put('/modifier/:id', upload.array('image', 3), async (req, res) => {
     try {
-      const { id } = req.params;
-      const { userEmail } = req.body;
+      const consultationId = req.params.id;
+      const { objet, type, date,contact, cout, remboursement, userEmail } = req.body;
   
-      const updatedConsulation = {
-        objet: req.body.objet,
-          type:req.body.type,
-          date: req.body.date,
-          contact: req.body.contact,
-        userEmail: req.body.userEmail,
-        cout: req.body.cout,
-          remboursement:req.body.remboursement,
-      };
+      if (isNaN(parseFloat(cout)) || isNaN(parseFloat(remboursement)) || parseFloat(cout) < 0 || parseFloat(remboursement) < 0) {
+        return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
+      }
   
-      if (req.file) {
-        updatedConsulation.ordonnance = {
-          data: fs.readFileSync(req.file.path),
-          contentType: req.file.mimetype,
-        };
+      const consultation = await Consultation.findById(consultationId);
+      if (!consultation) {
+        return res.status(404).json({ message: 'consultation non trouvée.' });
       }
-      const result = await Consultation.findByIdAndUpdate(id, updatedConsulation, { new: true });
-      if (!result) {
-        return res.status(404).json({ message: 'consultation introuvable' });
+  
+      consultation.objet = objet;
+      consultation.type = type;
+      consultation.date = date;
+      consultation.contact = contact;
+      consultation.cout = parseFloat(cout);
+      consultation.remboursement = parseFloat(remboursement);
+      consultation.userEmail = userEmail;
+  
+      if (req.files) {
+        consultation.ordonnance = [];
+        for (let i = 0; i < req.files.length; i++) {
+          consultation.ordonnance.push({
+            data: fs.readFileSync(req.files[i].path),
+            contentType: req.files[i].mimetype,
+          });
+        }
       }
-      res.status(200).json(result);
+  
+      await consultation.save();
+      res.json(consultation);
     } catch (err) {
       console.error(err);
-      res.status(500).send('Erreur lors de la modification du consultation');
+      res.status(500).send("Erreur lors de la modification de l'analyse dans la base de données");
     }
   });
-
   
   
 

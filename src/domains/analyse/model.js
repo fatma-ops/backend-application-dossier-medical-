@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 
 const analyseSchema = mongoose.Schema({
-  title: { type: String, required: true },
+  title: { type: String },
+  type: { type: String },
+
   date: { type: String },
-  contact: { type: String, required: true },
+  contact: { type: String },
   images: [{
     data: { type: Buffer },
     contentType: { type: String }

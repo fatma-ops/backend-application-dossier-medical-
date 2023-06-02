@@ -21,11 +21,34 @@ router.post('/add', (req, res) => {
 
     const cout = req.body.cout ? parseFloat(req.body.cout) : 0;
     const remboursement = req.body.remboursement ? parseFloat(req.body.remboursement) : 0;
-
-    if (cout < 0 || remboursement < 0) {
-      return res.status(400).json({ message: 'Le cout et le remboursement ne peuvent pas être négatifs.' });
+   
+    if (isNaN(cout) || isNaN(remboursement)) {
+      return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres.' });
     }
-
+    
+    if (cout < 0) {
+      return res.status(400).json({ message: 'Le cout ne peut pas être négatif.' });
+    }
+    
+    if (remboursement < 0) {
+      return res.status(400).json({ message: 'Le remboursement ne peut pas être négatif.' });
+    }
+    
+    if (cout > 1000000) {
+      return res.status(400).json({ message: 'Le cout ne peut pas dépasser 1,000,000.' });
+    }
+    
+    if (remboursement > 1000000) {
+      return res.status(400).json({ message: 'Le remboursement ne peut pas dépasser 1,000,000.' });
+    }
+    
+    
+    
+    
+    
+    
+    
+    
     const newTraitement = new Traitement({
       cout: cout,
       remboursement: remboursement,
@@ -59,6 +82,18 @@ router.post('/add', (req, res) => {
 });
 
 
+router.get('/traitements/:userEmail/:idConsultation', (req, res) => {
+  const { userEmail, idConsultation } = req.params;
+
+  Traitement.find({ userEmail, idConsultation })
+    .then((traitements) => {
+      res.status(200).json(traitements);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send('Erreur, essaye');
+    });
+});
 
 
 
@@ -123,40 +158,6 @@ router.get('/:userEmail/:idConsultation', async (req, res) => {
 
 
 // update Traitement
-router.put('/put/:id', async (req, res) => {
-    const id = req.params.id;
-  
-    try {
-      // Find the treatement to update by ID
-      const traitement = await Traitement.findById(id);
-  
-      if (!traitement) {
-        return res.status(404).send('Traitement introuvable');
-      }
-  
-      // Update the treatemenr data with the new file information
-      traitement.dateDeCommencement = req.body.dateDeCommencement;
-      traitement.nbrFois = req.body.nbrFois;
-      traitement.nbrJour = req.body.nbrJour;
-      traitement.medicament = req.body.medicament;
-
-      traitement.userEmail = req.body.userEmail;
-      traitement.idConsultation = req.body.idConsultation;
-
-
-  
-  
-  
-      // Save the updated treatement to the database
-      const updatedTraitement = await traitement.save();
-  
-      // Send the updated treatement data back to the client
-      res.status(200).json(updatedTraitement);
-    } catch (err) {
-      console.error(err);
-      res.status(500).send('Erreur lors de la mise à jour du Traitement');
-    }
-  });
 
   
 module.exports = router;

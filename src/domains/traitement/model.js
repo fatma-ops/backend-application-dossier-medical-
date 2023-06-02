@@ -6,7 +6,7 @@ const traitementSchema = new mongoose.Schema({
   medicaments: [{
     
     nommedicament: { type: String },
-    dateDeCommencement: { type: Date },
+    dateDeCommencement: { type: String },
     nbrfois: { type: Number },
     nbrJours: { type: Number },
   }],
