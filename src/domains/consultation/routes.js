@@ -33,8 +33,12 @@ router.post('/add', upload.single('ordonnance'), (req, res) => {
     if (isNaN(cout) || isNaN(remboursement) || cout < 0 || remboursement < 0) {
       return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
     }
-    if (cout < 0 || remboursement < 0 || cout > 1000000 || remboursement > 1000000) {
-      return res.status(400).json({ message: 'Le cout et le remboursement doivent être compris entre 0 et 1,000,000.' });
+    if (cout > 1000000) {
+      return res.status(400).json({ message: 'Le cout ne peut pas dépasser 1,000,000.' });
+    }
+    
+    if (remboursement > 1000000) {
+      return res.status(400).json({ message: 'Le remboursement ne peut pas dépasser 1,000,000.' });
     }
 
     const newConsultation = new Consultation({
@@ -70,6 +74,13 @@ router.post('/add/multiple', upload.array('ordonnance', 3), async (req, res) => 
 
     if (isNaN(cout) || isNaN(remboursement) || cout < 0 || remboursement < 0) {
       return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
+    }
+    if (cout > 1000000) {
+      return res.status(400).json({ message: 'Le cout ne peut pas dépasser 1,000,000.' });
+    }
+    
+    if (remboursement > 1000000) {
+      return res.status(400).json({ message: 'Le remboursement ne peut pas dépasser 1,000,000.' });
     }
 
     const newConsultation = new Consultation({

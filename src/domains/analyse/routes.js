@@ -71,7 +71,13 @@ router.post('/add/multiple', upload.array('images', 3), async (req, res) => {
     if (isNaN(cout) || isNaN(remboursement) || cout < 0 || remboursement < 0) {
       return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
     }
-
+    if (cout > 1000000) {
+      return res.status(400).json({ message: 'Le cout ne peut pas dépasser 1,000,000.' });
+    }
+    
+    if (remboursement > 1000000) {
+      return res.status(400).json({ message: 'Le remboursement ne peut pas dépasser 1,000,000.' });
+    }
     const newAnalyse = new Analyse({
       title: req.body.title,
       type: req.body.type,
@@ -110,7 +116,13 @@ router.put('/modifier/analyse/:id', upload.array('images', 3), async (req, res) 
     if (isNaN(parseFloat(cout)) || isNaN(parseFloat(remboursement)) || parseFloat(cout) < 0 || parseFloat(remboursement) < 0) {
       return res.status(400).json({ message: 'Le cout et le remboursement doivent être des nombres positifs.' });
     }
-
+    if (cout > 1000000) {
+      return res.status(400).json({ message: 'Le cout ne peut pas dépasser 1,000,000.' });
+    }
+    
+    if (remboursement > 1000000) {
+      return res.status(400).json({ message: 'Le remboursement ne peut pas dépasser 1,000,000.' });
+    }
     const analyse = await Analyse.findById(analyseId);
     if (!analyse) {
       return res.status(404).json({ message: 'Analyse non trouvée.' });
