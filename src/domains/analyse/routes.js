@@ -24,7 +24,7 @@ const upload = multer({
 
 
 //Add Analyse avec seule image ______________________________________________________
-router.post('/add', upload.single('image'), async (req, res) => {
+router.post('/add', upload.single('images'), async (req, res) => {
   try {
     const { userEmail } = req.body;
     let cout = req.body.cout ? parseFloat(req.body.cout) : 0;
@@ -46,7 +46,7 @@ router.post('/add', upload.single('image'), async (req, res) => {
     });
 
     if (req.file) {
-      newAnalyse.image = {
+      newAnalyse.images = {
         data: fs.readFileSync(req.file.path),
         contentType: req.file.mimetype,
       };
