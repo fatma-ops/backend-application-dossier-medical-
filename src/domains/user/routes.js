@@ -45,8 +45,7 @@ router.post("/signup", async (req,res) => {
       throw Error ("Nom invalide");
      }else if(!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)){
         throw Error ("Adresse e-mail invalide");
-     }else if(!/^[a-zA-Z]*$/.test(groupeSanguin)){
-      throw Error ("groupeSanguin invalide");
+     
     }else if(!/^[a-zA-Z]*$/.test(allergie)){
       throw Error ("allergie invalide");
       } else if(password.length<8){
