@@ -24,7 +24,7 @@ const upload = multer({
 // Destination folder to save the photos
 
 // add Consultation
-router.post('/add', upload.single('ordonnance'), (req, res) => {
+router.post('/add', upload.single('image'), (req, res) => {
   try {
     const { userEmail } = req.body;
     let cout = req.body.cout ? parseFloat(req.body.cout) : 0;
