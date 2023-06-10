@@ -39,7 +39,7 @@ return fetchedUser;
 
 const createNewUser = async (data) => {
     try{
-     const {prenom ,nom, email ,groupeSanguin,allergie ,password } = data ;
+     const {prenom ,nom, email ,groupeSanguin,allergie, genre,password } = data ;
      const existingUser = await User.findOne({ email });
      if(existingUser){
         throw Error("L'utilisateur avec l'e-mail fourni existe déjà.");
@@ -53,6 +53,7 @@ const createNewUser = async (data) => {
         email,
         groupeSanguin,
         allergie,
+        genre,
         password: hashedPassword, 
      });
      // save user 

@@ -2,37 +2,28 @@ const express = require('express');
 const router = express.Router();
 const Rappel = require('./model');
 
-// add rappel
-router.post('/add', (req, res) => {
-      try {
-        const { userEmail } = req.body;
-        let rappels = [];
-        if (Array.isArray(req.body.rappels)) {
-          rappels = req.body.rappels.map((rappel) => {
-            return {
-              
-              heure: rappel.heure,
-              
-            };
-          });
-        }
-        const newRappel = new Rappel({
-          rappels: rappels,
-          dateDeCommencement : req.body.dateDeCommencement,
-          medicament:req.body.medicament,
-          idTraitement:req.body.idTraitement,
-          userEmail: req.body.userEmail,
-        });
+router.post('/add', async (req, res) => {
+  try {
 
-        newRappel.save();
-        res.status(201).json(newRappel);
-      } catch (err) {
-        console.error(err);
-        res.status(500).send('Erreur, essaye');
-      }
-    
-  
+    const newRappel = new Rappel({
+      morningDateTime: req.body.morningDateTime,
+      noonDateTime: req.body.noonDateTime,
+      eveningDateTime: req.body.eveningDateTime,
+      nombreJours:req.body.nombreJours,
+      startDate: req.body.startDate,
+      nommedicament: req.body.nommedicament,
+      idMedicament: req.body.idMedicament,
+      userEmail: req.body.userEmail,
+    });
+
+    await newRappel.save();
+    res.status(201).json(newRappel);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur');
+  }
 });
+
 // Get Rappel
 router.get('/:userEmail', (req, res) => {
   const { userEmail } = req.params;

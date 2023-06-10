@@ -2,11 +2,12 @@ const mongoose = require ("mongoose");
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-prenom:String ,
-nom:String,
+prenom: String ,
+nom: String ,
 email:{ type:String , unique:true},
-groupeSanguin:String,
-allergie:String,
+groupeSanguin: String,
+allergie: String,
+genre: String,
 password : String , 
 token: String,
 verified : {type : Boolean , default : false},

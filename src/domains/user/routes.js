@@ -30,12 +30,13 @@ try {
 //Signup
 router.post("/signup", async (req,res) => {
     try{
-     let{prenom ,nom, email ,groupeSanguin,allergie, password} = req.body;
+     let{prenom,nom,email,groupeSanguin,allergie,genre,password} = req.body;
      prenom = prenom.trim();
      nom = nom.trim();
      email = email.trim();
      groupeSanguin = groupeSanguin.trim();
      allergie = allergie.trim();
+     genre = genre.trim();
      password= password.trim();
      if(!(prenom && nom && email && password  )){
         throw Error("Champs de saisie vides. !");
@@ -60,8 +61,8 @@ router.post("/signup", async (req,res) => {
          email,
          groupeSanguin,
          allergie,
+         genre,
          password,
-         
         });
         await sendVerificationOTPEmail(email);
         res.status(200).json(newUser); 
@@ -104,10 +105,12 @@ router.put('/:email', async (req, res) => {
   try {
     const userId = req.params.email;
     const updateData = {
-        nom: req.body.nom,
+        nom: req.body.nom, 
         prenom: req.body.prenom,
         allergie: req.body.allergie,
         groupeSanguin: req.body.groupeSanguin,
+        genre: req.body.genre,
+
     }
     const updatedUser = await User.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(userId) }, updateData, { new: true });
     if (!updatedUser) {
@@ -122,6 +125,22 @@ router.put('/:email', async (req, res) => {
 
 
 
+// Get user profile
+router.get('/:email', async (req, res) => {
+  try {
+    const userEmail = req.params.email;
+    const user = await User.findOne({ email: userEmail });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur du serveur' });
+  }
+});
 
 
 

@@ -172,7 +172,7 @@ router.delete('/delete/:id', async (req, res) => {
 
  
 
-  router.put('/modifier/:id', upload.array('image', 3), async (req, res) => {
+  router.put('/modifier/:id', upload.array('ordonnance', 3), async (req, res) => {
     try {
       const consultationId = req.params.id;
       const { objet, type, date,contact, cout, remboursement, userEmail } = req.body;
