@@ -138,6 +138,10 @@ router.put('/modifier/analyse/:id', upload.array('images', 3), async (req, res) 
     analyse.userEmail = userEmail;
 
     if (req.files) {
+      if (req.files.length === 0) {
+        return res.status(400).json({ message: 'veuillez remplir tous les champs obligatoires.' });
+      }
+    
       analyse.images = [];
       for (let i = 0; i < req.files.length; i++) {
         analyse.images.push({
@@ -145,7 +149,10 @@ router.put('/modifier/analyse/:id', upload.array('images', 3), async (req, res) 
           contentType: req.files[i].mimetype,
         });
       }
+    } else {
+      return res.status(400).json({ message: 'veuillez remplir les champs obligatoires.' });
     }
+    
 
     await analyse.save();
     res.json(analyse);

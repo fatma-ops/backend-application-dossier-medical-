@@ -16,6 +16,7 @@ const consultationSchema = new mongoose.Schema({
   commentaire: { type: String },
   cout: { type: Number },
   remboursement: { type: Number },
+
  
   created: {
     type: Date,

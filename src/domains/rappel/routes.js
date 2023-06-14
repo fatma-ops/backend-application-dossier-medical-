@@ -53,4 +53,24 @@ router.delete('/delete/:id', async (req, res) => {
     }
   });
 
+
+  router.post('/search', async (req, res) => {
+    try {
+      const { nommedicament, startDate } = req.body;
+  
+      // Recherche des rappels correspondant au nom du médicament et à la date de début
+      const rappels = await Rappel.find({
+        nommedicament: nommedicament,
+        startDate: startDate,
+      });
+  
+      res.status(200).json(rappels);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Erreur');
+    }
+  });
+  
+  
+
   module.exports = router;

@@ -193,6 +193,7 @@ router.delete('/delete/:id', async (req, res) => {
       consultation.cout = parseFloat(cout);
       consultation.remboursement = parseFloat(remboursement);
       consultation.userEmail = userEmail;
+
   
       if (req.files) {
         consultation.ordonnance = [];
