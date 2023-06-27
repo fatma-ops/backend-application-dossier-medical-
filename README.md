@@ -1,2 +1,6 @@
-# BackendPfe
-PFE Projet Fin d'etude fatma Mokrani & Ranim ourari
+# Backend nodejs  x expressjs
+Crud 
+authentification 
+rest password with otp
+email verification
+upload images 
